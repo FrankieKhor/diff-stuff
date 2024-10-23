@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
+import { number } from "zod";
+type columnValues = string | number
 
+type DiffRecords = Record<string, columnValues>;
 const CompareExcel: React.FC = () => {
-  const [file1Data, setFile1Data] = useState<any[]>([]);
-  const [file2Data, setFile2Data] = useState<any[]>([]);
+  const [file1Data, setFile1Data] = useState<columnValues[]>([]);
+  const [file2Data, setFile2Data] = useState<columnValues[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [excludedColumns, setExcludedColumns] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [differences, setDifferences] = useState<{ rowIndex: number; diffs: { [key: string]: { file1: any; file2: any } } }[]>([]);
-
+  const [differences, setDifferences] = useState<{ rowIndex: number; diffs: DiffRecords }[]>([]);
+  
   // Collect all unique column names from both files
   useEffect(() => {
     const allColumns = new Set<string>();
 
     if (file1Data.length > 0) {
+      console.log(`[CompareExcel.tsx]: 1 file1Data`, file1Data);
       Object.keys(file1Data[0]).forEach((col) => allColumns.add(col));
     }
     if (file2Data.length > 0) {
@@ -53,14 +57,15 @@ const CompareExcel: React.FC = () => {
 
   const findDifferences = () => {
     setLoading(true);
-    const diffs: { rowIndex: number; diffs: { [key: string]: { file1: any; file2: any } } }[] = [];
+    const diffs: { rowIndex: number; diffs: DiffRecords }[] = [];
 
     const maxLength = Math.max(file1Data.length, file2Data.length);
 
     for (let i = 0; i < maxLength; i++) {
       const row1 = file1Data[i] || {};
+      console.log(`[CompareExcel.tsx]: row1`, row1);
       const row2 = file2Data[i] || {};
-      const rowDiffs: { [key: string]: { file1: any; file2: any } } = {};
+      const rowDiffs: DiffRecords = {};
 
       columns.forEach((key) => {
         if (!excludedColumns.includes(key)) {
@@ -104,12 +109,16 @@ const CompareExcel: React.FC = () => {
         <tbody>
           {differences.map((diff) => (
             <tr key={diff.rowIndex}>
-              <td className="border border-gray-300 px-2 py-1 text-center">{diff.rowIndex + 1}</td>
+              <td className="border border-gray-300 px-2 py-1 text-center bg-gray-200">{diff.rowIndex + 1}</td>
               {Array.from(columnsWithDifferences).map((col) => (
-                <td key={col} className="border border-gray-300 px-2 py-1 bg-red-200">
+                <td key={col} className="border border-gray-300 px-2 py-1 ">
                   {diff.diffs[col]
-                    ? `${diff.diffs[col].file1 || '0'} / ${diff.diffs[col].file2 || '0'}`
-                    : '0 / 0' }
+                    ? <><span className="bg-blue-200 rounded-lg px-2 py-1">{diff.diffs[col].file1 || '0'}</span>
+                    /
+                    <span className="bg-orange-200 rounded-lg px-2 py-1">{diff.diffs[col].file2 || '0'}</span></>
+                    
+                    // `${diff.diffs[col].file1 || '0'} / ${diff.diffs[col].file2 || '0'}` 
+                    :<span className="bg-green-200 rounded-lg px-2 py-1"> 0 / 0 </span> }
                 </td>
               ))}
             </tr>
@@ -120,7 +129,7 @@ const CompareExcel: React.FC = () => {
   };
 
   return (
-    <div className="max-w-full mx-auto p-6 bg-gray-100 rounded-lg shadow-md mt-10">
+    <div className="max-w-full w-11/12 mx-auto p-6 bg-gray-100 rounded-lg shadow-md mt-10">
       <h1 className="text-2xl font-bold text-center mb-6">Compare Excel Files</h1>
 
       <div className="flex justify-between space-x-6">
@@ -179,12 +188,18 @@ const CompareExcel: React.FC = () => {
       </button>
 
       {/* Render Differences */}
-      {differences.length > 0 && (
+       {file1Data && file2Data && (
         <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-4">Differences</h2>
+           {differences.length > 0 && ( <>
+            <div className="mb-4">
+              <h2 className="text-xl font-bold mb-2">Summary</h2>
+              <p className="text-sm text-gray-500">
+                Found {differences.length} differences in {file1Data.length} rows.
+              </p>
+            </div>
+          <h2 className="text-xl font-bold mb-4">Differences</h2> </>) }
           {renderDifferencesTable()}
-        </div>
-      )}
+        </div>)}
     </div>
   );
 };
