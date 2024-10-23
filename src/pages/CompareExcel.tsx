@@ -34,8 +34,9 @@ const CompareExcel: React.FC = () => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array" });
         const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        const worksheet = workbook.Sheets[sheetName!!];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet!!);
         setFileData(jsonData);
       };
       reader.readAsArrayBuffer(file);
