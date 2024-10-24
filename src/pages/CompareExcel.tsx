@@ -17,7 +17,6 @@ const CompareExcel: React.FC = () => {
     const allColumns = new Set<string>();
 
     if (file1Data.length > 0) {
-      console.log(`[CompareExcel.tsx]: 1 file1Data`, file1Data);
       Object.keys(file1Data[0]).forEach((col) => allColumns.add(col));
     }
     if (file2Data.length > 0) {
@@ -27,25 +26,39 @@ const CompareExcel: React.FC = () => {
     setColumns(Array.from(allColumns));
   }, [file1Data, file2Data]);
 
-  const handleFileUpload = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    setFileData: React.Dispatch<React.SetStateAction<any[]>>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        
-        const worksheet = workbook.Sheets[sheetName!!];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet!!);
-        setFileData(jsonData);
-      };
-      reader.readAsArrayBuffer(file);
-    }
-  };
+const handleFileUpload = (
+  event: React.ChangeEvent<HTMLInputElement>,
+  setFileData: React.Dispatch<React.SetStateAction<any[]>>
+) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName!];
+
+      // Using header: 1 ensures you get all data (including potential empty headers)
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      // Manually constructing the columns from the first row (if needed)
+      if (jsonData.length > 0) {
+        const headers = jsonData[0] as string[];  // First row as headers
+        const dataRows = jsonData.slice(1);       // Remaining rows as data
+
+        const formattedData = dataRows.map((row: string[]) =>
+          headers.reduce((acc, header, index) => {
+            acc[header.trim()] = row[index]; // Trim headers and assign values
+            return acc;
+          }, {} as Record<string, any>)
+        );
+        setFileData(formattedData);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+};
 
   const handleColumnToggle = (column: string) => {
     if (excludedColumns.includes(column)) {
@@ -95,7 +108,7 @@ const CompareExcel: React.FC = () => {
     });
 
     return (
-      <table className="min-w-full border-collapse border border-gray-300 text-sm">
+      <table className="min-w-full border-collapse border border-gray-300 text-sm overflow-auto">
         <thead className="bg-gray-200">
           <tr>
             <th className="border border-gray-300 px-2 py-1">Row</th>
