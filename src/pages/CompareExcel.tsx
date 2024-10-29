@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { ChevronDownIcon } from '@radix-ui/react-icons'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import { number } from 'zod'
 type columnValues = string | number
@@ -14,7 +14,8 @@ const CompareExcel: React.FC = () => {
     const [excludedColumns, setExcludedColumns] = useState<string[]>([])
     const [loading, setLoading] = useState(false)
     const [differences, setDifferences] = useState<{ rowIndex: number; diffs: DiffRecords }[]>([])
-
+    const input1Ref = useRef<HTMLInputElement>(null)
+    const input2Ref = useRef<HTMLInputElement>(null)
     // Collect all unique column names from both files
     useEffect(() => {
         const allColumns = new Set<string>()
@@ -82,7 +83,6 @@ const CompareExcel: React.FC = () => {
 
         for (let i = 0; i < maxLength; i++) {
             const row1 = file1Data[i] || {}
-            console.log(`[CompareExcel.tsx]: row1`, row1)
             const row2 = file2Data[i] || {}
             const rowDiffs: DiffRecords = {}
 
@@ -159,6 +159,16 @@ const CompareExcel: React.FC = () => {
         )
     }
 
+    const clearUploads = () => {
+        setFile1Data([])
+        setFile2Data([])
+        input1Ref.current!.value = ''
+        input2Ref.current!.value = ''
+
+        setDifferences([])
+        setExcludedColumns([])
+    }
+
     return (
         <div className="mx-auto mt-10 w-11/12 max-w-full rounded-lg bg-gray-100 p-6 shadow-md">
             <h1 className="mb-6 text-center text-2xl font-bold">Compare Excel Files</h1>
@@ -172,6 +182,7 @@ const CompareExcel: React.FC = () => {
                         type="file"
                         accept=".xlsx, .xls"
                         onChange={(e) => handleFileUpload(e, setFile1Data)}
+                        ref={input1Ref}
                         className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none"
                     />
                 </div>
@@ -183,10 +194,22 @@ const CompareExcel: React.FC = () => {
                         type="file"
                         accept=".xlsx, .xls"
                         onChange={(e) => handleFileUpload(e, setFile2Data)}
+                        ref={input2Ref}
                         className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none"
                     />
                 </div>
             </div>
+
+            {(file1Data.length > 0 || file2Data.length > 0) && (
+                <button
+                    onClick={clearUploads}
+                    className={`mt-6 rounded-lg px-4 py-2 text-white ${
+                        loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+                    } focus:outline-none`}
+                >
+                    {loading ? 'Comparing...' : 'Clear uploads'}
+                </button>
+            )}
 
             {/* Column Selection */}
             {columns.length > 0 && (
@@ -220,18 +243,20 @@ const CompareExcel: React.FC = () => {
                 </div>
             )}
 
-            <button
-                onClick={findDifferences}
-                disabled={file1Data.length === 0 || file2Data.length === 0}
-                className={`mt-6 rounded-lg px-4 py-2 text-white ${
-                    loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
-                } focus:outline-none`}
-            >
-                {loading ? 'Comparing...' : 'Find Differences'}
-            </button>
+            {file1Data.length > 0 && file2Data.length > 0 && (
+                <button
+                    onClick={findDifferences}
+                    disabled={file1Data.length === 0 || file2Data.length === 0}
+                    className={`mt-6 rounded-lg px-4 py-2 text-white ${
+                        loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
+                    } focus:outline-none`}
+                >
+                    {loading ? 'Comparing...' : 'Find Differences'}
+                </button>
+            )}
 
             {/* Render Differences */}
-            {file1Data && file2Data && (
+            {file1Data.length > 0 && file2Data.length > 0 && (
                 <div className="mt-6 rounded-lg bg-white p-4 shadow-md">
                     {differences.length > 0 && (
                         <>
