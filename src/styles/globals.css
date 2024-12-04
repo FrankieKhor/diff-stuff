@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss'; /* This import causes issue with TS intellisense and needs to be commented out and in when development server is running to ensure it works*/
 
 @layer base {
     :root {
@@ -91,12 +89,12 @@
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
+    /* * {
+        @apply border;
+    } */
 
-    body {
+    /* body {
         @apply bg-background text-foreground;
         font-feature-settings: "rlig" 1, "calt" 1;
-    }
+    } */
 }

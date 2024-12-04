@@ -183,7 +183,7 @@ const CompareExcel: React.FC = () => {
                         accept=".xlsx, .xls"
                         onChange={(e) => handleFileUpload(e, setFile1Data)}
                         ref={input1Ref}
-                        className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none"
+                        className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-hidden"
                     />
                 </div>
                 <div className="w-1/2">
@@ -195,7 +195,7 @@ const CompareExcel: React.FC = () => {
                         accept=".xlsx, .xls"
                         onChange={(e) => handleFileUpload(e, setFile2Data)}
                         ref={input2Ref}
-                        className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-none"
+                        className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-900 focus:outline-hidden"
                     />
                 </div>
             </div>
@@ -205,7 +205,7 @@ const CompareExcel: React.FC = () => {
                     onClick={clearUploads}
                     className={`mt-6 rounded-lg px-4 py-2 text-white ${
                         loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
-                    } focus:outline-none`}
+                    } focus:outline-hidden`}
                 >
                     {loading ? 'Comparing...' : 'Clear uploads'}
                 </button>
@@ -249,7 +249,7 @@ const CompareExcel: React.FC = () => {
                     disabled={file1Data.length === 0 || file2Data.length === 0}
                     className={`mt-6 rounded-lg px-4 py-2 text-white ${
                         loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
-                    } focus:outline-none`}
+                    } focus:outline-hidden`}
                 >
                     {loading ? 'Comparing...' : 'Find Differences'}
                 </button>
